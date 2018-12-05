@@ -1,6 +1,6 @@
 import input from "./input";
 
-const isUpper = (char: string) => /^[A-Z]$/.test(char);
+const isUpper = (char: string) => char === char.toUpperCase();
 
 const react = (arr: Array<string>, remove?: string): Array<string> => {
     let copy = arr.slice();
@@ -20,7 +20,7 @@ const react = (arr: Array<string>, remove?: string): Array<string> => {
 
 const reacted = react(input);
 
-// Quick and dirty part 2
+// Part 2 could likely be more efficient than trying all values, but meh
 interface ReactBlocker {
     char: string;
     length: number;
@@ -29,8 +29,7 @@ let shortest: ReactBlocker = {
     char: '',
     length: Number.MAX_SAFE_INTEGER,
 };
-for (let i = 0x61; i <= 0x7A; i++) {
-    const c = String.fromCodePoint(i);
+for (let c of input.filter((v, i, arr) => arr.indexOf(v) === i)) {
     const length = react(input, c).length;
     if (length < shortest.length) {
         shortest = {
