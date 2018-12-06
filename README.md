@@ -1,3 +1,3 @@
 # Advent of Code
 
-Contains inputs and solutions for https://adventofcode.com/
+Contains inputs and solutions (and some extra stuff) for https://adventofcode.com/
