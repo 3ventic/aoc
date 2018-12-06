@@ -1,0 +1,24 @@
+{
+	"name": "aoc-2018",
+	"version": "1.0.0",
+	"description": "aoc-2018 solutions",
+	"main": "",
+	"scripts": {
+		"start": "ts-node index.ts"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://code.3v.fi/3ventic/advent-of-code.git"
+	},
+	"author": "",
+	"license": "",
+	"private": true,
+	"devDependencies": {
+		"@types/cross-spawn": "^6.0.0",
+		"@types/node": "^10.12.12",
+		"cross-env": "^5.2.0",
+		"cross-spawn": "^6.0.5",
+		"ts-node": "^7.0.1",
+		"typescript": "^3.2.1"
+	}
+}

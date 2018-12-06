@@ -1,7 +1,8 @@
 {
-    "compilerOptions": {
-        "target": "es2017",
-        "downlevelIteration": true,
-        "strictNullChecks": true
-    }
+	"compilerOptions": {
+		"target": "es2017",
+		"downlevelIteration": true,
+		"strictNullChecks": true,
+		"moduleResolution": "node"
+	}
 }
