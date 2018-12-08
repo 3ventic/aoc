@@ -1,14 +1,37 @@
 import input from "./input";
 
-function sumMetadata(inArr: number[]): number {
+interface INode {
+	sum: number;
+	value: number;
+}
+
+function calculateNode(inArr: number[]): INode {
 	let children: number = inArr.splice(0, 1)[0];
 	const entries: number = inArr.splice(0, 1)[0];
 	let sum: number = 0;
+	let values: number[] = [0];
 	for (let c: number = children; c > 0; c--) {
-		sum += sumMetadata(inArr);
+		let childNode: INode = calculateNode(inArr);
+		sum += childNode.sum;
+		values.push(childNode.value);
 	}
-	sum += inArr.splice(0, entries).reduce((r, v) => r + v, 0);
-	return sum;
+	let metadata: number[] = inArr.splice(0, entries);
+	sum += metadata.reduce((r, v) => r + v, 0);
+
+	if (children === 0) {
+		return { sum, value: sum };
+	}
+
+	let value: number = 0;
+	for (let i: number = 0; i < entries; i++) {
+		let m: number = metadata[i];
+		if (values[m]) {
+			value += values[m];
+		}
+	}
+	return { sum, value };
 }
 
-console.log("Part 1 answer:", sumMetadata(input));
+let rootNode: INode = calculateNode(input);
+console.log("Part 1 answer:", rootNode.sum);
+console.log("Part 2 answer:", rootNode.value);
