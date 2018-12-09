@@ -40,6 +40,7 @@ namespace day9
 
 					// Remove marble
 					this.marble.Previous.Next = this.marble.Next;
+					this.marble.Next.Previous = this.marble.Previous;
 					this.marble = this.marble.Next;
 				}
 				else
