@@ -1,8 +1,7 @@
-interface IGameState {
-	circle: number[];
-	marble: number;
-	player: number;
-	score: Map<number, number>;
+interface IMarble {
+	previous: IMarble;
+	next: IMarble;
+	value: number;
 }
 
 interface IPlayer {
@@ -12,44 +11,56 @@ interface IPlayer {
 
 export class Marbles {
 	private players: number;
+	private player: number = 0;
 	private marbles: number;
-	private state: IGameState;
+	private score: Map<number, number>;
+	private marble: IMarble;
 
 	constructor(players: number, lastMarbleWorth: number) {
 		this.players = players;
 		this.marbles = lastMarbleWorth;
-		this.state = {
-			circle: [0],
-			marble: 0,
-			player: 0,
-			score: new Map()
+		this.score = new Map();
+		this.marble = {
+			previous: this.marble,
+			next: this.marble,
+			value: 0
 		};
+		this.marble.previous = this.marble;
+		this.marble.next = this.marble;
 	}
 
 	public play(): void {
 		for (let i: number = 1; i <= this.marbles; i++) {
 			if (i % 23 === 0) {
 				// add to score
-				let score: number = this.state.score.get(this.state.player) || 0;
-				let index: number = this.state.marble - 7;
-				if (index < 0) {
-					index += this.state.circle.length;
+				let score: number = this.score.get(this.player) || 0;
+				score += i;
+				for (const _ of new Array(7)) {
+					this.marble = this.marble.previous;
 				}
-				let removed: number[] = this.state.circle.splice(index, 1);
-				this.state.score.set(this.state.player, score + i + removed[0]);
-				this.state.marble = index;
+				score += this.marble.value;
+				this.score.set(this.player, score);
+
+				this.marble.previous.next = this.marble.next;
+				this.marble.next.previous = this.marble.previous;
+				this.marble = this.marble.next;
 			} else {
 				// add to circle
-				let index: number = this.state.marble + 1;
-				if (index >= this.state.circle.length) {
-					index %= this.state.circle.length;
+				for (const _ of new Array(1)) {
+					this.marble = this.marble.next;
 				}
-				this.state.circle.splice(index, 1, this.state.circle[index], i);
-				this.state.marble = index + 1;
+				const m: IMarble = {
+					previous: this.marble,
+					next: this.marble.next,
+					value: i
+				};
+				this.marble.next.previous = m;
+				this.marble.next = m;
+				this.marble = m;
 			}
-			this.state.player++;
-			if (this.state.player === this.players) {
-				this.state.player = 0;
+			this.player++;
+			if (this.player === this.players) {
+				this.player = 0;
 			}
 		}
 	}
@@ -59,7 +70,7 @@ export class Marbles {
 			id: -1,
 			score: -1
 		};
-		for (const [id, score] of this.state.score) {
+		for (const [id, score] of this.score) {
 			if (score > highest.score) {
 				highest = { id, score };
 			}

@@ -10,4 +10,7 @@ game.play();
 
 console.log("Part 1 answer:", game.highscore());
 
-console.log("Part 2 answer in C#");
+const gamePart2: Marbles = new Marbles(players, points * 100);
+gamePart2.play();
+
+console.log("Part 2 answer:", gamePart2.highscore());
