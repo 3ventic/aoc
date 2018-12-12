@@ -64,10 +64,6 @@ function getGeneration(state: boolean[], generations: number): IGeneration {
 				state: state
 			};
 		}
-		if ((i + 1) % 1000000 === 0) {
-			console.log(potsOnLeft);
-			print(i + 1, state);
-		}
 	}
 
 	return {
