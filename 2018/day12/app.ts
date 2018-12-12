@@ -45,7 +45,7 @@ function getGeneration(state: boolean[], generations: number): IGeneration {
 			if (cycle.indexOf(cacheKey) === -1) {
 				cycle.push(cacheKey);
 			} else {
-				// this only works with cycle.length === 0 right now, which matches my input, but could be generalized with a bit more work
+				// this only works with cycle.length === 1 right now, which matches my input, but could be generalized with a bit more work
 				const potsLeftPerCycle: number = cycle.map(k => cache[k].potsOnLeft).reduce((r, v) => r + v, 0);
 				const generationsToGo: number = generations - i;
 				const loops: number = Math.floor(generationsToGo / cycle.length);
