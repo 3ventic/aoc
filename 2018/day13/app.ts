@@ -24,12 +24,18 @@ type Cart = {
 	lastMove: number;
 };
 
+type RailMap = {
+	totalCarts: number;
+	rails: Rail[][];
+};
+
 type Rail = {
 	cart: Cart | null;
 	direction: RailDirection;
 };
 
-function parseRailmap(input: string): Rail[][] {
+function parseRailmap(input: string): RailMap {
+	let totalCarts: number = 0;
 	const rails: Rail[][] = [];
 	const rows: string[] = input.split("\n");
 	for (let y: number = 0; y < rows.length; y++) {
@@ -64,21 +70,25 @@ function parseRailmap(input: string): Rail[][] {
 							direction: RailDirection.SlantedLeftCorner
 						};
 					case "^":
+						totalCarts++;
 						return {
 							cart: { x, y, direction: Direction.Up, intersections: 0, lastMove: -1 },
 							direction: RailDirection.Vertical
 						};
 					case "v":
+						totalCarts++;
 						return {
 							cart: { x, y, direction: Direction.Down, intersections: 0, lastMove: -1 },
 							direction: RailDirection.Vertical
 						};
 					case "<":
+						totalCarts++;
 						return {
 							cart: { x, y, direction: Direction.Left, intersections: 0, lastMove: -1 },
 							direction: RailDirection.Horizontal
 						};
 					case ">":
+						totalCarts++;
 						return {
 							cart: { x, y, direction: Direction.Right, intersections: 0, lastMove: -1 },
 							direction: RailDirection.Horizontal
@@ -92,9 +102,9 @@ function parseRailmap(input: string): Rail[][] {
 			})
 		);
 	}
-	return rails;
+	return { totalCarts, rails };
 }
-const railmap: Rail[][] = parseRailmap(input);
+const railmap: RailMap = parseRailmap(input);
 
 function turnRight(cart: Cart): void {
 	switch (cart.direction) {
@@ -130,8 +140,11 @@ function turnLeft(cart: Cart): void {
 	}
 }
 
-function findFirstCrash(rails: Rail[][]): number[] {
-	for (let i: number = 0; ; i++) {
+function findFirstCrashAndLastCart(railmap: RailMap): number[][] {
+	const rails: Rail[][] = railmap.rails;
+	const answer: number[][] = [];
+	let lastCart: number[] = [];
+	for (let i: number = 0; railmap.totalCarts > 1; i++) {
 		for (let y: number = 0; y < rails.length; y++) {
 			for (let x: number = 0; x < rails[y].length; x++) {
 				if (rails[y][x].cart && rails[y][x].cart!.lastMove !== i) {
@@ -153,9 +166,15 @@ function findFirstCrash(rails: Rail[][]): number[] {
 							break;
 					}
 					if (rails[newY][newX].cart) {
-						return [newX, newY];
+						if (answer.length === 0) {
+							answer.push([newX, newY]);
+						}
+						rails[y][x].cart = null;
+						rails[newY][newX].cart = null;
+						railmap.totalCarts -= 2;
 					} else {
 						rails[newY][newX].cart = cart;
+						lastCart = [newX, newY];
 						cart.lastMove = i;
 						rails[y][x].cart = null;
 						switch (rails[newY][newX].direction) {
@@ -200,7 +219,10 @@ function findFirstCrash(rails: Rail[][]): number[] {
 			}
 		}
 	}
-	return [-1, -1];
+	answer.push(lastCart);
+	return answer;
 }
 
-console.log("Part 1 answer:", findFirstCrash(railmap));
+const answers: number[][] = findFirstCrashAndLastCart(railmap);
+console.log("Part 1 answer:", answers[0]);
+console.log("Part 2 answer:", answers[1]);
