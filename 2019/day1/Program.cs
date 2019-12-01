@@ -16,17 +16,10 @@ namespace day1
             Console.WriteLine($"Part 1: {total}");
 
             // Part 2
-            int forFuel = total;
-            do
-            {
-                forFuel = FuelRequirement(forFuel);
-                if (forFuel < 0)
-                {
-                    forFuel = 0;
-                }
-                Console.WriteLine($"After: {forFuel}");
-                total += forFuel;
-            } while (forFuel > 0);
+            total = input.
+            Split('\n').
+            Select(i => FuelRequirementWithFuel(int.Parse(i))).
+            Aggregate((total, i) => total + i);
 
             Console.WriteLine($"Part 2: {total}");
         }
@@ -34,6 +27,17 @@ namespace day1
         static int FuelRequirement(int mass)
         {
             return mass / 3 - 2;
+        }
+
+        static int FuelRequirementWithFuel(int mass)
+        {
+            int fuel = mass / 3 - 2;
+            if (fuel < 1)
+            {
+                return 0;
+            }
+            fuel += FuelRequirementWithFuel(fuel);
+            return fuel;
         }
 
         static string input = @"119999
