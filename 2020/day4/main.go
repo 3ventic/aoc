@@ -15,10 +15,13 @@ const (
 	hair           = "hcl"
 	eye            = "ecl"
 	id             = "pid"
-	country        = "cid"
 )
 
-var requiredFields = []string{birthYear, issueYear, expirationYear, height, hair, eye, id}
+var (
+	requiredFields = []string{birthYear, issueYear, expirationYear, height, hair, eye, id}
+	hairMatcher    = regexp.MustCompile("^#[0-9a-f]{6}$")
+	idMatcher      = regexp.MustCompile("^[0-9]{9}$")
+)
 
 type passport map[string]string
 
@@ -29,68 +32,70 @@ func between(value string, min, max int) bool {
 
 func main() {
 	pps := parsePassports(input)
-	valid := 0
-	lesser := 0
+	fieldsPresent, fieldsValidated := validatePassports(pps)
+
+	log.Printf("Star 1: %d", fieldsPresent)
+	log.Printf("Star 2: %d", fieldsValidated)
+}
+
+func validatePassports(pps []passport) (fieldsPresent int, fieldsValidated int) {
 	for _, pp := range pps {
-		v := true
-		l := true
+		present := true
+		validated := true
 		for _, field := range requiredFields {
 			if value, ok := pp[field]; ok {
 				switch field {
 				case birthYear:
 					if !between(value, 1920, 2002) {
-						l = false
+						validated = false
 					}
 				case issueYear:
 					if !between(value, 2010, 2020) {
-						l = false
+						validated = false
 					}
 				case expirationYear:
 					if !between(value, 2020, 2030) {
-						l = false
+						validated = false
 					}
 				case height:
 					if val := strings.TrimSuffix(value, "cm"); val != value {
 						if !between(val, 150, 193) {
-							l = false
+							validated = false
 						}
 					} else if val := strings.TrimSuffix(value, "in"); val != value {
 						if !between(val, 59, 76) {
-							l = false
+							validated = false
 						}
 					} else {
-						l = false
+						validated = false
 					}
 				case hair:
-					m, _ := regexp.Match("^#[0-9a-f]{6}$", []byte(value))
-					if !m {
-						l = false
+					if !hairMatcher.Match([]byte(value)) {
+						validated = false
 					}
 				case eye:
 					switch value {
 					case "amb", "blu", "brn", "gry", "grn", "hzl", "oth":
 					default:
-						l = false
+						validated = false
 					}
 				case id:
-					m, _ := regexp.Match("^[0-9]{9}$", []byte(value))
-					if !m {
-						l = false
+					if !idMatcher.Match([]byte(value)) {
+						validated = false
 					}
 				}
 			} else {
-				v = false
+				present = false
 			}
 		}
-		if v {
-			valid++
+		if present {
+			fieldsPresent++
 		}
-		if l && v {
-			lesser++
+		if validated && present {
+			fieldsValidated++
 		}
 	}
-	log.Print(valid)
-	log.Print(lesser)
+	return
 }
 
 func parsePassports(in string) []passport {
