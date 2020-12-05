@@ -2,19 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
-Seat[] seats = parseSeats().ToArray();
-
-int mySeat = 0;
-int diff = seats.First().Id;
-for (int i = 0; i < seats.Length; i++)
-{
-    int expectedId = i + diff;
-    if (seats[i].Id != expectedId)
-    {
-        mySeat = expectedId;
-        break;
-    }
-}
+var seats = parseSeats();
+int mySeat = seats.Where((seat, index) => seat.Id != index + seats.First().Id).First().Id - 1;
 
 Console.WriteLine($"Star 1: {seats.Last().Id}");
 Console.WriteLine($"Star 2: {mySeat}");
@@ -25,20 +14,7 @@ IEnumerable<Seat> parseSeats() => Input.Value.Split('\n').Select(t => new Seat()
     Col = binaryInput(t.Substring(7, 3))
 }).OrderBy(seat => seat.Id);
 
-int binaryInput(string s)
-{
-    // Console.WriteLine(s);
-    int total = 0;
-    for (int i = 0; i < s.Length; i++)
-    {
-        if (s[i] == 'B' || s[i] == 'R')
-        {
-            total += (int)Math.Pow(2, s.Length - i - 1);
-        }
-    }
-    // Console.WriteLine(total);
-    return total;
-}
+int binaryInput(string s) => s.Select((c, i) => c == 'B' || c == 'R' ? (int)Math.Pow(2, s.Length - i - 1) : 0).Sum();
 
 class Seat
 {
