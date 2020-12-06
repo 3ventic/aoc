@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 Console.WriteLine(Input.Value);
 
