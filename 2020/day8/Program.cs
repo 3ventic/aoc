@@ -2,83 +2,81 @@
 using System.Collections.Generic;
 using System.Linq;
 
-var instructions = Input.Value.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select(s =>
+Instruction[] ParseInstructions()
 {
-    var ins = new Instruction();
-    var parts = s.Split(' ');
-    switch (parts[0])
+    var instructions = Input.Value.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select((s, i) =>
     {
-        case "nop": ins.Action = InstructionAction.Nop; break;
-        case "jmp": ins.Action = InstructionAction.Jmp; break;
-        case "acc": ins.Action = InstructionAction.Acc; break;
-    }
-    var value = int.Parse(parts[1].Substring(1));
-    if (parts[1][0] == '-')
+        var ins = new Instruction()
+        {
+            Id = i
+        };
+        var parts = s.Split(' ');
+        switch (parts[0])
+        {
+            case "nop": ins.Action = InstructionAction.Nop; break;
+            case "jmp": ins.Action = InstructionAction.Jmp; break;
+            case "acc": ins.Action = InstructionAction.Acc; break;
+        }
+        var value = int.Parse(parts[1].Substring(1));
+        if (parts[1][0] == '-')
+        {
+            value *= -1;
+        }
+        ins.Value = value;
+        return ins;
+    }).Append(null).ToArray();
+
+    for (int i = 0; i < instructions.Length - 1; i++)
     {
-        value *= -1;
+        switch (instructions[i].Action)
+        {
+            case InstructionAction.Acc:
+                instructions[i].Next = instructions[i + 1];
+                break;
+            case InstructionAction.Nop:
+                instructions[i].Next = instructions[i + 1];
+                instructions[i].NextJmpNopSwapped = instructions[i + instructions[i].Value];
+                break;
+            case InstructionAction.Jmp:
+                instructions[i].Next = instructions[i + instructions[i].Value];
+                instructions[i].NextJmpNopSwapped = instructions[i + 1];
+                break;
+        }
     }
-    ins.Value = value;
-    return ins;
-}).ToArray();
+    return instructions;
+}
 
-var star1 = 0;
-var star2 = 0;
-
-// brute force by changing one index per loop, and keep track of ones we've tried already
-var changed = new HashSet<int>();
-for (int j = 0; ; j++)
+(int, bool) Accumulate(Instruction[] instructions, int swapNthJmpNop)
 {
+    var n = 0;
     var acc = 0;
-    var changedThisLoop = false;
-    // executed keeps track of already executed instructions to detect infinite loops
-    var executed = new HashSet<int>();
-    for (int i = 0; ;)
+    var seen = new HashSet<int>();
+    var ins = instructions.First();
+    do
     {
-        // last instruction detection
-        if (i == instructions.Length)
-        {
-            star2 = acc;
-            goto terminated;
-        }
-
-        // infinite loop detection
-        if (executed.Contains(i))
-        {
-            if (j == 0)
-            {
-                star1 = acc;
-            }
-            break;
-        }
-        executed.Add(i);
-        var ins = instructions[i];
+        seen.Add(ins.Id);
+        var next = ins.Next;
         switch (ins.Action)
         {
-            case InstructionAction.Nop:
-                if (j > 0 && !changedThisLoop && !changed.Contains(i))
-                {
-                    changedThisLoop = true;
-                    changed.Add(i);
-                    goto case InstructionAction.Jmp;
-                }
-                goto default;
+            case InstructionAction.Acc: acc += ins.Value; break;
             case InstructionAction.Jmp:
-                if (j > 0 && !changedThisLoop && !changed.Contains(i))
+            case InstructionAction.Nop:
+                n++;
+                if (n == swapNthJmpNop)
                 {
-                    changedThisLoop = true;
-                    changed.Add(i);
-                    goto case InstructionAction.Nop;
+                    next = ins.NextJmpNopSwapped;
                 }
-                i += ins.Value;
                 break;
-            case InstructionAction.Acc:
-                acc += ins.Value;
-                goto default;
-            default: i++; break;
         }
-    }
+        ins = next;
+    } while (ins != null && !seen.Contains(ins.Id));
+    return (acc, ins == null);
 }
-terminated:
+
+var instructions = ParseInstructions();
+var star1 = Accumulate(instructions, -1).Item1;
+var star2 = new int[instructions.Length].Select((_, i) => Accumulate(instructions, i)).First(acc => acc.Item2).Item1;
+
 System.Console.WriteLine($"Star 1: {star1}");
 System.Console.WriteLine($"Star 2: {star2}");
 
@@ -91,8 +89,11 @@ enum InstructionAction
 
 class Instruction
 {
+    public int Id { get; set; }
     public InstructionAction Action { get; set; }
     public int Value { get; set; }
+    public Instruction Next { get; set; }
+    public Instruction NextJmpNopSwapped { get; set; }
 
     public override string ToString()
     {
