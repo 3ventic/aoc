@@ -46,7 +46,7 @@ Instruction[] ParseInstructions()
     return instructions;
 }
 
-(int, bool) Accumulate(Instruction[] instructions, int swapNthJmpNop)
+(int Total, bool Terminated) Accumulate(Instruction[] instructions, int swapNthJmpNop)
 {
     var n = 0;
     var acc = 0;
@@ -74,8 +74,8 @@ Instruction[] ParseInstructions()
 }
 
 var instructions = ParseInstructions();
-var star1 = Accumulate(instructions, -1).Item1;
-var star2 = new int[instructions.Length].Select((_, i) => Accumulate(instructions, i)).First(acc => acc.Item2).Item1;
+var star1 = Accumulate(instructions, -1).Total;
+var star2 = new int[instructions.Length].Select((_, i) => Accumulate(instructions, i)).First(acc => acc.Terminated).Total;
 
 System.Console.WriteLine($"Star 1: {star1}");
 System.Console.WriteLine($"Star 2: {star2}");
