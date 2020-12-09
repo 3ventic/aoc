@@ -14,7 +14,7 @@ IEnumerable<Seat> parseSeats() => Input.Value.Split('\n').Select(t => new Seat()
     Col = binaryInput(t.Substring(7, 3))
 }).OrderBy(seat => seat.Id);
 
-int binaryInput(string s) => s.Select((c, i) => c == 'B' || c == 'R' ? (int)Math.Pow(2, s.Length - i - 1) : 0).Sum();
+int binaryInput(string s) => s.Select((c, i) => c == 'B' || c == 'R' ? 1 << s.Length - i - 1 : 0).Sum();
 
 class Seat
 {
