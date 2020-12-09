@@ -16,9 +16,9 @@ var numbers = inputs.Select((n, i) =>
         };
     }
     bool valid = false;
-    for (int j = i - 25; j < i; j++)
+    for (int j = i - preamble; j < i; j++)
     {
-        for (int k = i - 25; k < i; k++)
+        for (int k = i - preamble; k < i; k++)
         {
             if (j == k) continue;
             if (inputs[j] + inputs[k] == n)
