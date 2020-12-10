@@ -29,6 +29,7 @@ var star2 = GroupLengths(chargers).Select(WaysThroughGroup).Aggregate((double)1,
 System.Console.WriteLine($"Star 1: {star1.Item1 * star1.Item2}");
 System.Console.WriteLine($"Star 2: {star2}");
 
+// GroupLengths returns the lengths of the sections of groups that can be skipped
 IEnumerable<double> GroupLengths(int[] chargers)
 {
     for (int i = 0; i < chargers.Length - 1; i++)
@@ -40,15 +41,15 @@ IEnumerable<double> GroupLengths(int[] chargers)
         {
             i++;
         }
-        yield return (double)(i - start);
+        yield return (double)(i - start - 1);
     }
 }
 
-double WaysThroughGroup(double n)
+// WaysThroughGroup returns the number of possible ways to navigate through a group
+double WaysThroughGroup(double length)
 {
-    n -= 1;
-    double half = n / 2;
-    return n * half + half + 1;
+    double half = length / 2;
+    return length * half + half + 1;
 }
 
 // Hack to have the input at the bottom of the file
