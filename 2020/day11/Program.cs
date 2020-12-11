@@ -6,14 +6,9 @@ Direction[] directions = new Direction[] { Direction.Up, Direction.Down, Directi
 
 Seat[][] ParseSeats(string input)
 {
-    var seats = input.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select((s, i) =>
-    {
-        return s.Select((c, i) => new Seat()
-        {
-            RawState = c
-        }).ToArray();
-    }).ToArray();
+    var seats = input.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries).Select((s, i) => s.Select((c, i) => new Seat() { RawState = c }).ToArray()).ToArray();
 
+    // fill in neighbours
     for (var y = 0; y < seats.Length; y++)
     {
         for (var x = 0; x < seats.First().Length; x++)
@@ -30,7 +25,7 @@ Seat[][] ParseSeats(string input)
     return seats;
 }
 
-string EncodeSeats(Seat[][] seats) => string.Join('\n', seats.Select(row => string.Join("", row.Select(seat => seat.RawState))));
+string EncodeSeats(Seat[][] seats) => string.Join('\n', seats.Select(row => string.Join(string.Empty, row.Select(seat => seat.RawState))));
 
 Seat[][] DeepCloneSeats(Seat[][] seats) => ParseSeats(EncodeSeats(seats));
 
@@ -66,6 +61,7 @@ int star2;
     (Seat[][] Seats, bool Changed) game = (ParseSeats(Input.Value), true);
     while (game.Changed)
     {
+        // directly occupied seats, >= 4 occupied and people leave
         game = PlayRound(game.Seats, 4, (seats, x, y) => seats[y][x].Neighbours.Where(kv => kv.Value != null && kv.Value.State == SeatState.Occupied).Count());
     }
 
@@ -76,6 +72,7 @@ int star2;
     (Seat[][] Seats, bool Changed) game = (ParseSeats(Input.Value), true);
     while (game.Changed)
     {
+        // first seat in a straight line in one of the 8 directions, >= 5 occupied and people leave
         game = PlayRound(game.Seats, 5, (seats, x, y) => seats[y][x].Neighbours.Where(kv =>
         {
             var s = kv.Value;
