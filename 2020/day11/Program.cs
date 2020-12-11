@@ -55,25 +55,22 @@ Seat[][] DeepCloneSeats(Seat[][] seats) => ParseSeats(EncodeSeats(seats));
     return (next, changed);
 }
 
-int star1;
-int star2;
+int PlayGame(int toleration, Func<Seat[][], int, int, int> countNeighbours)
 {
     (Seat[][] Seats, bool Changed) game = (ParseSeats(Input.Value), true);
     while (game.Changed)
     {
-        // directly occupied seats, >= 4 occupied and people leave
-        game = PlayRound(game.Seats, 4, (seats, x, y) => seats[y][x].Neighbours.Where(kv => kv.Value != null && kv.Value.State == SeatState.Occupied).Count());
+        game = PlayRound(game.Seats, toleration, countNeighbours);
     }
 
-    star1 = game.Seats.Select(row => row.Where(seat => seat.State == SeatState.Occupied).Count()).Sum();
+    return game.Seats.Select(row => row.Where(seat => seat.State == SeatState.Occupied).Count()).Sum();
 }
 
-{
-    (Seat[][] Seats, bool Changed) game = (ParseSeats(Input.Value), true);
-    while (game.Changed)
-    {
-        // first seat in a straight line in one of the 8 directions, >= 5 occupied and people leave
-        game = PlayRound(game.Seats, 5, (seats, x, y) => seats[y][x].Neighbours.Where(kv =>
+// directly occupied seats, >= 4 occupied and people leave
+int star1 = PlayGame(4, (seats, x, y) => seats[y][x].Neighbours.Where(kv => kv.Value != null && kv.Value.State == SeatState.Occupied).Count());
+
+// first seat in a straight line in one of the 8 directions, >= 5 occupied and people leave
+int star2 = PlayGame(5, (seats, x, y) => seats[y][x].Neighbours.Where(kv =>
         {
             var s = kv.Value;
             while (s != null)
@@ -90,10 +87,6 @@ int star2;
             };
             return false;
         }).Count());
-    }
-
-    star2 = game.Seats.Select(row => row.Where(seat => seat.State == SeatState.Occupied).Count()).Sum();
-}
 
 System.Console.WriteLine($"Star 1: {star1}");
 System.Console.WriteLine($"Star 2: {star2}");
