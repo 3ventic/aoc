@@ -1,11 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
-import Data.Either (lefts)
-import Data.List (sort)
 import Data.Text (Text, splitOn)
 import Data.Text.IO (readFile)
-import Data.Text.Read (decimal)
 import Debug.Trace (trace)
 
 main = do
