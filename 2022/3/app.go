@@ -6,21 +6,21 @@ import (
 	"strings"
 )
 
+func value(c byte) int {
+	valueHigherBase := byte('a') - 1
+	valueLowerBase := byte('A') - 1
+
+	if c > valueHigherBase {
+		return int(c - valueHigherBase)
+	} else {
+		return int(c-valueLowerBase) + 26
+	}
+}
+
 func main() {
 	b, _ := os.ReadFile("input.txt")
 	input := string(b)
 	sacks := strings.Split(input, "\n")
-
-	valueHigherBase := byte('a') - 1
-	valueLowerBase := byte('A') - 1
-
-	value := func(c byte) int {
-		if c > valueHigherBase {
-			return int(c - valueHigherBase)
-		} else {
-			return int(c-valueLowerBase) + 26
-		}
-	}
 
 	part1 := 0
 	part2 := 0
@@ -40,31 +40,34 @@ func main() {
 	}
 
 	for _, sack := range sacks {
-		l := len(sack)
-		if l == 0 {
+		totalLength := len(sack)
+		if totalLength == 0 {
 			continue
 		}
-		s := l / 2
+		indexOfSecondHalf := totalLength / 2
 
-		var c byte = 0
-		for i := 0; i < s; i++ {
-			for j := s; j < l; j++ {
+		var character byte = 0
+		for i := 0; i < indexOfSecondHalf; i++ {
+			for j := indexOfSecondHalf; j < totalLength; j++ {
 				if sack[i] == sack[j] {
-					c = sack[i]
+					character = sack[i]
 					goto out
 				}
 			}
 		}
 	out:
-		part1 += value(c)
+		part1 += value(character)
 
-		for _, c := range sack {
-			markCandidate(byte(c))
+		for _, character := range sack {
+			markCandidate(byte(character))
 		}
 		if groupState == 2 {
-			for k, v := range badgeCandidates[0] {
-				if v == 1 && badgeCandidates[1][k] == 1 && badgeCandidates[2][k] == 1 {
-					part2 += value(k)
+			for character := range badgeCandidates[0] {
+				isBadge := badgeCandidates[0][character] == 1 &&
+					badgeCandidates[1][character] == 1 &&
+					badgeCandidates[2][character] == 1
+				if isBadge {
+					part2 += value(character)
 					break
 				}
 			}
