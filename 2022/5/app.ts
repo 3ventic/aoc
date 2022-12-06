@@ -54,9 +54,11 @@ const state = parseInput(inputs.input);
 
 for (const move of state.moves) {
 	const [crates, from, to] = move;
+	// First stack moves one by one, flipping the order
 	for (let i = 0; i < crates; i++) {
 		state.stacks[0][to].push(state.stacks[0][from].pop()!);
 	}
+	// Second stack moves all at once, keeping the order
 	const moved = state.stacks[1][from].splice(-crates);
 	state.stacks[1][to].push(...moved);
 }
