@@ -2,9 +2,9 @@ import * as inputs from "./input";
 
 function findSignal(input: string, length: number): number {
 	for (let i = length; i < input.length; i++) {
-		const signalTracker = new Map<string, boolean>();
+		const signalTracker = new Set<string>();
 		for (let j = 0; j < length; j++) {
-			signalTracker.set(input[i - j], true);
+			signalTracker.add(input[i - j]);
 		}
 		if (signalTracker.size === length) {
 			return i + 1;
