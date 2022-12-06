@@ -24,3 +24,4 @@ for (const input of inputs.sampleInputs) {
 }
 
 console.log("Part 1:", findSignal(inputs.input, 4));
+console.log("Part 2:", findSignal(inputs.input, 14));
