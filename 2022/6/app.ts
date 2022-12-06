@@ -1,18 +1,12 @@
 import * as inputs from "./input";
 
 function findSignal(input: string, length: number): number {
-	let signalTracker: string[] = [];
-
-	outer: for (let i = 0; i < input.length; i++) {
-		const c = input[i];
-		for (let j = 0; j < signalTracker.length; j++) {
-			if (signalTracker[j] === c) {
-				signalTracker = [...signalTracker.slice(j + 1), c];
-				continue outer;
-			}
+	for (let i = length; i < input.length; i++) {
+		const signalTracker = new Map<string, boolean>();
+		for (let j = 0; j < length; j++) {
+			signalTracker.set(input[i - j], true);
 		}
-		signalTracker.push(c);
-		if (signalTracker.length === length) {
+		if (signalTracker.size === length) {
 			return i + 1;
 		}
 	}
