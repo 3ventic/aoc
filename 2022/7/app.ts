@@ -20,7 +20,7 @@ function parseInput(input: string): [Folder, Folder[]] {
 		name: "/",
 		files: [],
 		folders: [],
-		size: -1,
+		size: 0,
 	};
 
 	const folders: Folder[] = [];
@@ -38,7 +38,9 @@ function parseInput(input: string): [Folder, Folder[]] {
 				}
 
 				if (path === "..") {
-					currentFolder = currentFolder.parent || root;
+					const parent = currentFolder.parent || root;
+					parent.size += currentFolder.size;
+					currentFolder = parent;
 					continue;
 				}
 
@@ -48,37 +50,29 @@ function parseInput(input: string): [Folder, Folder[]] {
 					files: [],
 					parent: prevFolder,
 					folders: [],
-					size: -1,
+					size: 0,
 				};
 				folders.push(currentFolder);
 				prevFolder.folders.push(currentFolder);
 			}
 		} else if (words[0] !== "dir") {
 			const [size, name] = words;
+			const fileSize = parseInt(size);
 			currentFolder.files.push({
 				folder: currentFolder,
 				name,
-				size: parseInt(size),
+				size: fileSize,
 			});
+			currentFolder.size += fileSize;
 		}
 	}
 
-	return [root, folders];
-}
+	while (currentFolder.parent) {
+		currentFolder.parent.size += currentFolder.size;
+		currentFolder = currentFolder.parent;
+	}
 
-function calculateSize(folder: Folder): number {
-	if (folder.size !== -1) {
-		return folder.size;
-	}
-	let size = 0;
-	for (const file of folder.files) {
-		size += file.size;
-	}
-	for (const subfolder of folder.folders) {
-		size += calculateSize(subfolder);
-	}
-	folder.size = size;
-	return size;
+	return [root, folders];
 }
 
 function findSum(folders: Folder[], sizeLimit: number): number {
@@ -102,8 +96,6 @@ function findSmallestAbove(folders: Folder[], sizeLimit: number): number {
 }
 
 const [rootFolder, folders] = parseInput(inputs.input);
-calculateSize(rootFolder);
-
 const fileSystemSize = 70000000;
 const requiredSize = 30000000;
 
