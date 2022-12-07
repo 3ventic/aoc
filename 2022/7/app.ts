@@ -9,70 +9,57 @@ type F = {
 type Folder = {
 	parent?: Folder;
 	name: string;
-	path: string;
 	files: F[];
 	folders: Folder[];
 	size: number;
 };
 
-function parseInput(input: string): [Folder, Map<string, Folder>] {
+function parseInput(input: string): [Folder, Folder[]] {
 	const lines = input.split("\n");
 	const root: Folder = {
-		name: "",
-		path: "/",
+		name: "/",
 		files: [],
 		folders: [],
 		size: -1,
 	};
 
-	const folders = new Map<string, Folder>();
-	let currentPath = root.path;
-	folders.set(currentPath, root);
+	const folders: Folder[] = [];
+	folders.push(root);
+	let currentFolder: Folder = root;
 
 	for (const line of lines) {
 		const words = line.split(" ");
-		switch (words[0]) {
-			case "$":
-				{
-					const [_, command, path] = words;
-					if (command === "cd") {
-						if (path === "/") {
-							currentPath = "/";
-							break;
-						}
-						const prevPath = currentPath;
-						currentPath =
-							path === ".."
-								? currentPath.split("/").slice(0, -1).join("/")
-								: `${currentPath}/${path}`;
-						if (!folders.has(currentPath)) {
-							const folder: Folder = {
-								name: path,
-								path: currentPath,
-								files: [],
-								parent: folders.get(prevPath),
-								folders: [],
-								size: -1,
-							};
-							folders.set(currentPath, folder);
-							folders.get(prevPath)!.folders.push(folder);
-						}
-					}
+		if (words[0] === "$") {
+			const [, command, path] = words;
+			if (command === "cd") {
+				if (path === "/") {
+					currentFolder = root;
+					continue;
 				}
-				break;
-			case "dir":
-				break;
-			default:
-				{
-					const [size, name] = words;
-					const folder = folders.get(currentPath)!;
-					folder.files.push({
-						folder,
-						name,
-						size: parseInt(size),
-					});
+
+				if (path === "..") {
+					currentFolder = currentFolder.parent || root;
+					continue;
 				}
-				break;
+
+				const prevFolder = currentFolder;
+				currentFolder = {
+					name: path,
+					files: [],
+					parent: prevFolder,
+					folders: [],
+					size: -1,
+				};
+				folders.push(currentFolder);
+				prevFolder.folders.push(currentFolder);
+			}
+		} else if (words[0] !== "dir") {
+			const [size, name] = words;
+			currentFolder.files.push({
+				folder: currentFolder,
+				name,
+				size: parseInt(size),
+			});
 		}
 	}
 
@@ -94,9 +81,9 @@ function calculateSize(folder: Folder): number {
 	return size;
 }
 
-function findSum(folders: Map<string, Folder>, sizeLimit: number): number {
+function findSum(folders: Folder[], sizeLimit: number): number {
 	let sum = 0;
-	for (const folder of folders.values()) {
+	for (const folder of folders) {
 		if (folder.size <= sizeLimit) {
 			sum += folder.size;
 		}
@@ -104,12 +91,9 @@ function findSum(folders: Map<string, Folder>, sizeLimit: number): number {
 	return sum;
 }
 
-function findSmallestAbove(
-	folders: Map<string, Folder>,
-	sizeLimit: number
-): number {
+function findSmallestAbove(folders: Folder[], sizeLimit: number): number {
 	let smallest = Infinity;
-	for (const folder of folders.values()) {
+	for (const folder of folders) {
 		if (folder.size > sizeLimit && folder.size < smallest) {
 			smallest = folder.size;
 		}
