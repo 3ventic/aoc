@@ -4,10 +4,7 @@ type Tree = {
 	height: number;
 	scenicScore: number;
 	seesBeyondEdge: boolean;
-	counted: number;
 };
-
-const VISIBLE_PART_2 = 0b0010;
 
 function parseInput(input: string): Tree[][] {
 	const lines = input.split("\n");
@@ -15,7 +12,6 @@ function parseInput(input: string): Tree[][] {
 	for (const line of lines) {
 		const row = Array.from(line).map((x) => ({
 			height: parseInt(x),
-			counted: 0,
 			scenicScore: 0,
 			seesBeyondEdge: false,
 		}));
@@ -51,8 +47,7 @@ function scenicScores(graph: Tree[][]): [Tree, number] {
 			scenicScore *= countVisible(tree, col.slice(y + 1));
 			scenicScore *= countVisible(tree, col.slice(0, y).reverse());
 			tree.scenicScore = scenicScore;
-			if (tree.seesBeyondEdge && !(tree.counted & VISIBLE_PART_2)) {
-				tree.counted |= VISIBLE_PART_2;
+			if (tree.seesBeyondEdge) {
 				edgeVisible++;
 			}
 			if (scenicScore > bestTree.scenicScore) {
