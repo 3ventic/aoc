@@ -38,14 +38,14 @@ function scenicScores(graph: Tree[][]): [Tree, number] {
 	let edgeVisible = 0;
 	for (let x = 0; x < graph.length; x++) {
 		for (let y = 0; y < graph[x].length; y++) {
-			const tree = graph[y][x];
-			const row = graph[y];
-			const col = graph.map((row) => row[x]);
+			const tree = graph[x][y];
+			const row = graph[x];
+			const col = graph.map((row) => row[y]);
 			let scenicScore = 1;
-			scenicScore *= countVisible(tree, row.slice(x + 1));
-			scenicScore *= countVisible(tree, row.slice(0, x).reverse());
-			scenicScore *= countVisible(tree, col.slice(y + 1));
-			scenicScore *= countVisible(tree, col.slice(0, y).reverse());
+			scenicScore *= countVisible(tree, row.slice(y + 1));
+			scenicScore *= countVisible(tree, row.slice(0, y).reverse());
+			scenicScore *= countVisible(tree, col.slice(x + 1));
+			scenicScore *= countVisible(tree, col.slice(0, x).reverse());
 			tree.scenicScore = scenicScore;
 			if (tree.seesBeyondEdge) {
 				edgeVisible++;
