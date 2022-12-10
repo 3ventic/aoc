@@ -71,7 +71,7 @@ class CRT {
 	reset() {
 		this.screen = new Array(this.height);
 		for (let i = 0; i < this.height; i++) {
-			this.screen[i] = new Array(this.width).fill(".");
+			this.screen[i] = new Array(this.width).fill(" ");
 		}
 	}
 
@@ -85,7 +85,7 @@ class CRT {
 		if (y < 0 || y >= this.height || x < 0 || x >= this.width) {
 			return;
 		}
-		this.screen[y][x] = "#";
+		this.screen[y][x] = "█";
 	}
 
 	display(): string {
