@@ -3,48 +3,74 @@ import * as inputs from "./input";
 type Monkey = {
 	name: string;
 	items: number[];
-	operation: string;
+	operation: (n: number) => number;
 	test: (n: number) => boolean;
 	next: [string, string];
 	inspected: number;
 };
 
-function parseInput(input: string): Map<string, Monkey> {
+function parseInput(input: string): [Map<string, Monkey>, number[]] {
 	const monkeys = new Map<string, Monkey>();
+	const divisors = new Set<number>();
 	for (const monkeyIn of input.split("\n\n")) {
 		const match = monkeyIn.match(
-			/Monkey (\d+):\n  Starting items: ((?:\d+(?:, )?)*)\n  Operation: (.+)\n  Test: divisible by (\d+)\n    If true: throw to monkey (\d+)\n    If false: throw to monkey (\d+)/
+			/Monkey (\d+):\n  Starting items: ((?:\d+(?:, )?)*)\n  Operation: new = old (.) (.*)\n  Test: divisible by (\d+)\n    If true: throw to monkey (\d+)\n    If false: throw to monkey (\d+)/
 		);
 		if (!match) {
 			console.warn("Failed to parse monkey input: " + monkeyIn);
 			continue;
 		}
-		const [, name, itemsRaw, operation, testRaw, nextTrue, nextFalse] = match;
+		const [
+			,
+			name,
+			itemsRaw,
+			operation,
+			operandRaw,
+			testRaw,
+			nextTrue,
+			nextFalse,
+		] = match;
+		const divisor = parseInt(testRaw, 10);
 		const monkey: Monkey = {
 			name,
 			items: itemsRaw.split(", ").map((i) => parseInt(i, 10)),
-			operation: operation.replace(/(new|old)/g, "item"),
-			test: (n) => n % parseInt(testRaw, 10) === 0,
+			operation: (n) => {
+				const operand = operandRaw === "old" ? n : parseInt(operandRaw, 10);
+				switch (operation) {
+					case "+":
+						return n + operand;
+					case "*":
+						return n * operand;
+					default:
+						console.warn("Unknown operation: " + operation);
+						return n;
+				}
+			},
+			test: (n) => n % divisor === 0,
 			next: [nextFalse, nextTrue],
 			inspected: 0,
 		};
+		divisors.add(divisor);
 		monkeys.set(name, monkey);
 	}
-	return monkeys;
+	return [monkeys, Array.from(divisors.values())];
 }
 
 function processRound(
 	monkeys: Map<string, Monkey>,
-	worryReduction: boolean = true
+	worryReduction: boolean = true,
+	reduceAbove: number = Number.MAX_SAFE_INTEGER
 ) {
 	for (let i = 0; i < monkeys.size; i++) {
 		const monkey = monkeys.get(i.toString())!;
 		while (monkey.items.length > 0) {
 			let item = monkey.items.shift()!;
-			eval(monkey.operation);
+			item = monkey.operation(item);
 			if (worryReduction) {
 				item /= 3;
 				item |= 0;
+			} else {
+				item %= reduceAbove;
 			}
 			const next = monkey.next[Number(monkey.test(item))];
 			monkeys.get(next)!.items.push(item);
@@ -53,19 +79,16 @@ function processRound(
 	}
 }
 
-const monkeys = parseInput(inputs.input);
-const monkeys2 = parseInput(inputs.sample);
+const [monkeys] = parseInput(inputs.input);
+const [monkeys2, divisors] = parseInput(inputs.input);
+
+const prime = divisors.reduce((a, b) => a * b);
 
 for (let i = 0; i < 20; i++) {
 	processRound(monkeys);
 }
 for (let i = 0; i < 10000; i++) {
-	if (
-		[1, 20, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000].includes(i)
-	) {
-		console.log("Round", i, monkeys2);
-	}
-	processRound(monkeys2, false);
+	processRound(monkeys2, false, prime);
 }
 
 function multiplyInspected(monkeys: Map<string, Monkey>) {
