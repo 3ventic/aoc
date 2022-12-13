@@ -33,9 +33,7 @@ function compareOrder(a: Signal, b: Signal): number {
 			if (result !== 0) {
 				return result;
 			}
-		} else if (first === second) {
-			continue;
-		} else {
+		} else if (first !== second) {
 			return first - second;
 		}
 	}
