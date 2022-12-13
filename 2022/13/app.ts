@@ -55,7 +55,8 @@ console.log(
 	pairs.reduce((acc, pair, i) => {
 		if (compareOrder(pair[0], pair[1]) < 0) {
 			return acc + i + 1;
-		} else return acc;
+		}
+		return acc;
 	}, 0)
 );
 
