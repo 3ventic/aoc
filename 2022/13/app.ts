@@ -65,16 +65,8 @@ const dividerPackets: Signal[] = [[[2]], [[6]]];
 signals.push(...dividerPackets);
 signals.sort(compareOrder);
 
-// Find index of divider packets
-const dividerIndices = signals.reduce((acc, signal, i) => {
-	if (compareOrder(signal, dividerPackets[0]) === 0) {
-		acc[0] = i + 1;
-	} else if (compareOrder(signal, dividerPackets[1]) === 0) {
-		acc[1] = i + 1;
-	}
-	return acc;
-});
-console.log(
-	"Part 2:",
-	(dividerIndices[0] as number) * (dividerIndices[1] as number)
+const dividerIndices = dividerPackets.map(
+	(packet) => signals.indexOf(packet) + 1
 );
+const result = dividerIndices.reduce((acc, index) => acc * index, 1);
+console.log("Part 2:", result);
