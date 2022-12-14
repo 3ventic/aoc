@@ -74,13 +74,9 @@ function dropSand(
 	x: number = 500,
 	y: number = 0
 ): boolean {
-	if (withFloor) {
-		if (y > cavernSlice.lowestY) {
-			setCell(cavernSlice, x, y, Cell.Sand);
-			return true;
-		}
-	} else if (y > cavernSlice.lowestY) {
-		return false;
+	if (y > cavernSlice.lowestY) {
+		setCell(cavernSlice, x, y, Cell.Sand);
+		return withFloor;
 	}
 	if (getCell(cavernSlice, x, y + 1) === Cell.Air) {
 		return dropSand(cavernSlice, withFloor, x, y + 1);
