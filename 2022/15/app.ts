@@ -20,7 +20,7 @@ type Boundaries = {
 
 function parseInput(input: string): Points {
 	const matches = input.matchAll(
-		/Sensor at x=(\d+), y=(\d+): closest beacon is at x=(\d+), y=(\d+)/gu
+		/Sensor at x=(-?\d+), y=(-?\d+): closest beacon is at x=(-?\d+), y=(-?\d+)/gu
 	)
 
 	const boundaries: Boundaries = {
@@ -64,7 +64,10 @@ function parseInput(input: string): Points {
 	}
 }
 
-function coordinatesInViewOfPoints(points: Points, y: number): number {
+function coordinatesInViewOfPoints(
+	points: Points,
+	y: number
+): [number, number][] {
 	const coverRanges = Array.from(points.sensors.values())
 		.reduce<[number, number][]>((result, point) => {
 			const distance = point.distanceToBeacon - Math.abs(point.y - y)
@@ -77,23 +80,37 @@ function coordinatesInViewOfPoints(points: Points, y: number): number {
 			return result
 		}, [])
 		.sort((a, b) => a[0] - b[0])
-		.reduce<[number, number]>(
-			(result, range) => {
-				if (range[1] > result[1]) {
-					if (range[0] === result[1]) {
-						// prevent duplicate count for the endpoints of adjacent ranges
-						result[0] -= 1
-					}
-					result[0] += range[1] + 1 - Math.max(range[0], result[1] + 1)
-					result[1] = range[1]
-				}
+		.reduce<[number, number][]>((result, range) => {
+			if (result.length === 0) {
+				result.push(range)
 				return result
-			},
-			[0, points.boundaries.minX - 1]
-		)
-	return coverRanges[0]
+			}
+			const lastRange = result[result.length - 1]
+			if (lastRange[1] >= range[0]) {
+				lastRange[1] = Math.max(lastRange[1], range[1])
+				return result
+			}
+			result.push(range)
+			return result
+		}, [])
+	return coverRanges
 }
 
 const points = parseInput(input.input)
+const rangePart1 = coordinatesInViewOfPoints(points, 2_000_000)
+const part1 = rangePart1.reduce((result, range) => {
+	result += range[1] - range[0]
+	return result
+}, 0)
 
-console.log("Part 1:", coordinatesInViewOfPoints(points, 2_000_000))
+const part2 = { x: 0, y: 0 }
+for (let i = 0; i < 4_000_000; i++) {
+	const range = coordinatesInViewOfPoints(points, i)
+	if (range.length > 1) {
+		part2.x = range[1][0] - 1
+		part2.y = i
+	}
+}
+
+console.log("Part 1:", part1)
+console.log("Part 2:", part2.x * 4_000_000 + part2.y)
