@@ -1,77 +1,44 @@
 import * as input from "./input"
 
-type Point = {
+type Sensor = {
 	x: number
 	y: number
 	distanceToBeacon: number
 }
 
-type Points = {
-	boundaries: Boundaries
-	sensors: Map<string, Point>
-}
+type Sensors = Sensor[]
 
-type Boundaries = {
-	minX: number
-	maxX: number
-	minY: number
-	maxY: number
-}
+type Range = [number, number]
 
-function parseInput(input: string): Points {
+function parseInput(input: string): Sensors {
 	const matches = input.matchAll(
 		/Sensor at x=(-?\d+), y=(-?\d+): closest beacon is at x=(-?\d+), y=(-?\d+)/gu
 	)
 
-	const boundaries: Boundaries = {
-		minX: Infinity,
-		maxX: -Infinity,
-		minY: Infinity,
-		maxY: -Infinity,
-	}
-	const sensors = Array.from(matches).reduce((result, match) => {
+	const sensors = Array.from(matches).reduce<Sensors>((result, match) => {
 		const x = Number(match[1])
 		const y = Number(match[2])
 		const distanceToBeacon =
 			Math.abs(Number(match[1]) - Number(match[3])) +
 			Math.abs(Number(match[2]) - Number(match[4]))
-		const potentialXRange = [x - distanceToBeacon, x + distanceToBeacon]
-		const potentialYRange = [y - distanceToBeacon, y + distanceToBeacon]
-		if (potentialXRange[0] < boundaries.minX) {
-			boundaries.minX = potentialXRange[0]
-		}
-		if (potentialXRange[1] > boundaries.maxX) {
-			boundaries.maxX = potentialXRange[1]
-		}
-		if (potentialYRange[0] < boundaries.minY) {
-			boundaries.minY = potentialYRange[0]
-		}
-		if (potentialYRange[1] > boundaries.maxY) {
-			boundaries.maxY = potentialYRange[1]
-		}
 
-		result.set(`${match[1]},${match[2]}`, {
+		result.push({
 			x,
 			y,
 			distanceToBeacon,
 		})
 		return result
-	}, new Map<string, Point>())
+	}, [])
 
-	return {
-		sensors,
-		boundaries,
-	}
+	return sensors
 }
 
-function coordinatesInViewOfPoints(
-	points: Points,
-	y: number
-): [number, number][] {
-	const coverRanges = Array.from(points.sensors.values())
-		.reduce<[number, number][]>((result, point) => {
+function rangesInRange(points: Sensors, y: number): Range[] {
+	const coverRanges = points
+		.reduce<Range[]>((result, point) => {
 			const distance = point.distanceToBeacon - Math.abs(point.y - y)
 			if (distance <= 0) {
+				// Not in range, skip
 				return result
 			}
 			const left = point.x - distance
@@ -80,7 +47,7 @@ function coordinatesInViewOfPoints(
 			return result
 		}, [])
 		.sort((a, b) => a[0] - b[0])
-		.reduce<[number, number][]>((result, range) => {
+		.reduce<Range[]>((result, range) => {
 			if (result.length === 0) {
 				result.push(range)
 				return result
@@ -97,18 +64,19 @@ function coordinatesInViewOfPoints(
 }
 
 const points = parseInput(input.input)
-const rangePart1 = coordinatesInViewOfPoints(points, 2_000_000)
-const part1 = rangePart1.reduce((result, range) => {
+const rangesPart1 = rangesInRange(points, 2_000_000)
+const part1 = rangesPart1.reduce((result, range) => {
 	result += range[1] - range[0]
 	return result
 }, 0)
 
 const part2 = { x: 0, y: 0 }
 for (let i = 0; i < 4_000_000; i++) {
-	const range = coordinatesInViewOfPoints(points, i)
-	if (range.length > 1) {
-		part2.x = range[1][0] - 1
+	const ranges = rangesInRange(points, i)
+	if (ranges.length > 1) {
+		part2.x = ranges[1][0] - 1
 		part2.y = i
+		break
 	}
 }
 
