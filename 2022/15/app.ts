@@ -38,7 +38,6 @@ function rangesInRange(points: Sensors, y: number): Range[] {
 		.reduce<Range[]>((result, point) => {
 			const distance = point.distanceToBeacon - Math.abs(point.y - y)
 			if (distance <= 0) {
-				// Not in range, skip
 				return result
 			}
 			const left = point.x - distance

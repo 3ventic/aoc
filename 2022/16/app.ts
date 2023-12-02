@@ -1,4 +1,5 @@
 import * as inputs from "./input"
+import { permute } from "./stackoverflow"
 
 type Valve = {
 	name: string
@@ -7,6 +8,12 @@ type Valve = {
 }
 
 type Valves = Map<string, Valve>
+
+type Candidate = {
+	valve: Valve
+	distance: number
+	potential: number
+}
 
 const maxSteps = 30
 
@@ -50,90 +57,64 @@ const parseInput = (input: string): Valves => {
 	return valves
 }
 
-function findNextHighestPotentialValve(
+function potentialRelease(flowRate: number, stepsLeft: number): number {
+	return flowRate * stepsLeft
+}
+
+function minimumDistanceToValve(
 	valve: Valve,
-	stepsLeft: number,
-	seen: Set<Valve>
-): [number, Valve] | null {
-	if (stepsLeft <= 0) {
-		return null
+	targetValve: Valve,
+	seen: Set<Valve> = new Set([valve])
+): number {
+	if (valve === targetValve) {
+		return 0
 	}
-	const stepsToMove = 1
-	const stepsToOpen = 1
-	let stepsTaken = 0
-	let highestRateValve: Valve | null = null
-	let highestPotentialRelease = 0
-	for (const tunnelValve of valve.tunnels) {
-		if (seen.has(tunnelValve)) {
-			continue
-		}
-		let potentialRelease =
-			tunnelValve.flowRate * (stepsLeft - stepsToMove - stepsToOpen)
-		if (potentialRelease > 0) {
-			// console.log("POTENTIAL", tunnelValve.name, potentialRelease)
-		}
-		if (potentialRelease > highestPotentialRelease) {
-			highestPotentialRelease = potentialRelease
-			highestRateValve = tunnelValve
-		}
-		const innerPotential = findNextHighestPotentialValve(
-			tunnelValve,
-			stepsLeft - stepsToMove - stepsToOpen,
-			new Set([...seen, tunnelValve])
-		)
-		if (!innerPotential) {
-			continue
-		}
-
-		const [innerSteps, innerValve] = innerPotential
-		potentialRelease =
-			innerValve.flowRate * (stepsLeft - stepsToMove - stepsToOpen - innerSteps)
-		if (potentialRelease > highestPotentialRelease) {
-			highestPotentialRelease = potentialRelease
-			highestRateValve = innerValve
-			stepsTaken = innerSteps
-		}
-	}
-	return highestRateValve
-		? [stepsTaken + stepsToMove + stepsToOpen, highestRateValve]
-		: null
+	return Math.min(
+		...valve.tunnels
+			.filter((tunnel) => {
+				if (seen.has(tunnel)) {
+					return false
+				}
+				seen.add(tunnel)
+				return true
+			})
+			.map((tunnel) => 1 + minimumDistanceToValve(tunnel, targetValve, seen))
+	)
 }
 
-function calculateMaxPotentialPressureReleased(valves: Valves): number {
-	const releasedVaves = new Set<Valve>()
-	let flowRate = 0
-	let released = 0
-	let valve = valves.values().next().value
-	for (let step = 1; step <= maxSteps; ) {
-		const potential = findNextHighestPotentialValve(
-			valve,
-			maxSteps - step - 1,
-			releasedVaves
-		)
-		if (!potential) {
-			console.log("NO POTENTIAL", step, valve.name, flowRate)
-			released += flowRate
-			step++
-			continue
-		}
-		let stepsTaken
-		;[stepsTaken, valve] = potential
-		step += stepsTaken
-		released += flowRate * stepsTaken
-		flowRate += valve.flowRate
-		releasedVaves.add(valve)
-		console.log(
-			"MOVED AND OPENED",
-			valve.name,
-			"in",
-			stepsTaken,
-			"steps for a new flowrate of",
-			flowRate
-		)
-	}
-	return released
+function calculateMaxPotentialPressureReleased(allValves: Valves): number {
+	const start = allValves.values().next().value
+	// return (function inner(start: Valve, nexts: Valve[]): number {
+	// 	if (nexts.length === 0) {
+	// 		return 0
+	// 	}
+	// 	// Evaluate all possible orders of nexts and return the maximum
+	// 	return Math.max(
+	// 		...nexts.map((next, index) => {
+	// 			const nextNexts = [...nexts]
+	// 			nextNexts.splice(index, 1)
+	// 			return (
+	// 				potentialRelease(next.flowRate, minimumDistanceToValve(start, next)) +
+	// 				inner(next, nextNexts)
+	// 			)
+	// 		})
+	// 	)
+	// })(
+	// 	start,
+	// 	[...allValves.values()].filter((valve) => valve.flowRate)
+	// )
+	const flowValves = [...allValves.values()].filter((valve) => valve.flowRate)
+	console.log(flowValves.length)
+	// permute(flowValves).map((vs) => console.log(vs.map((v) => v.name)))
+	return 0
 }
 
-const valves = parseInput(inputs.sample)
+const valves = parseInput(inputs.input)
+
+console.log(
+	permute(Array.from(valves.values()).slice(0, 11)).map((vs) =>
+		vs.map((v) => v.name)
+	)
+)
 
 console.log(calculateMaxPotentialPressureReleased(valves))

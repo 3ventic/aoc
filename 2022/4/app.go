@@ -1,3 +1,10 @@
+// This code reads in a text file, input.txt, and parses it.
+// The file contains two ranges of integers separated by a comma.
+// e.g. 1-3,2-4
+// The code then determines how many pairs of ranges have a common value,
+// and how many pairs of ranges have no common values.
+// It then prints the two results to the console.
+
 package main
 
 import (
@@ -7,6 +14,8 @@ import (
 	"strings"
 )
 
+// parseRange takes a string in the format x-y where x and y are integers
+// and returns a pair of integers.
 func parseRange(r string) (int, int) {
 	// range is a pair of integers separated by a dash
 	pair := strings.Split(r, "-")
