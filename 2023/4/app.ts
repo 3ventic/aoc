@@ -15,8 +15,7 @@ function matchingNumbers(game: Game) {
 }
 
 function gamePoints(game: Game) {
-	const points = game.gameNumbers.filter((n) => game.winningNumbers.includes(n))
-	return Math.floor(2 ** (points.length - 1))
+	return Math.floor(2 ** (matchingNumbers(game).length - 1))
 }
 
 console.log(
