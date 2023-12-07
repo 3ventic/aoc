@@ -32,6 +32,11 @@ type Seed = {
 	location: number
 }
 
+type ValueRange = {
+	min: number
+	len: number
+}
+
 function parseMaps(input: string): SeedData {
 	const lines = input.split("\n").map((l) => l.trim())
 	let state: keyof SeedMaps | null = null
@@ -130,6 +135,51 @@ function mapValue(value: number, maps: RangeData[]): number {
 	return destination + diff
 }
 
+export function mapValueRange(
+	range: ValueRange,
+	maps: RangeData[]
+): ValueRange[] {
+	const ranges: ValueRange[] = []
+	const mappedRanges: ValueRange[] = []
+	let r = structuredClone(range)
+	ranges.push(r)
+
+	for (const map of maps) {
+		let skips = 0
+		for (let i = 0; i < ranges.length - skips; i++) {
+			const rr = ranges[i]
+
+			if (rr.len === 0) {
+				continue
+			}
+			if (map.source > rr.min + rr.len) {
+				continue
+			}
+			if (map.source + map.range < rr.min) {
+				continue
+			}
+
+			const start = Math.max(map.source, rr.min)
+			const end = Math.min(map.source + map.range, rr.min + rr.len)
+			const len = end - start
+			const left = start - rr.min
+			const right = rr.len - len - left
+
+			rr.len = left
+			mappedRanges.push({
+				min: map.destination + (rr.min - map.source),
+				len: len,
+			})
+			if (right > 0) {
+				ranges.push({ min: end, len: right })
+				skips++
+			}
+		}
+	}
+
+	return ranges.filter((v) => v.len).concat(mappedRanges)
+}
+
 function mapSeed(seed: number, maps: SeedMaps): Seed {
 	const soil = mapValue(seed, maps.seedToSoil)
 	const fert = mapValue(soil, maps.soilToFert)
@@ -161,4 +211,36 @@ const seeds = mapSeeds(sd.seeds, sd.maps)
 console.log(
 	"Part 1:",
 	seeds.reduce((r, s) => (s.location < r ? s.location : r), Number.MAX_VALUE)
+)
+
+const seedRanges: ValueRange[] = []
+for (let i = 0; i < sd.seeds.length; i += 2) {
+	seedRanges.push({ min: sd.seeds[i], len: sd.seeds[i + 1] })
+}
+
+const soilRanges = seedRanges.flatMap((r) =>
+	mapValueRange(r, sd.maps.seedToSoil)
+)
+const fertRanges = soilRanges.flatMap((r) =>
+	mapValueRange(r, sd.maps.soilToFert)
+)
+const waterRanges = fertRanges.flatMap((r) =>
+	mapValueRange(r, sd.maps.fertToWater)
+)
+const lightRanges = waterRanges.flatMap((r) =>
+	mapValueRange(r, sd.maps.waterToLight)
+)
+const tempRanges = lightRanges.flatMap((r) =>
+	mapValueRange(r, sd.maps.lightToTemp)
+)
+const humidRanges = tempRanges.flatMap((r) =>
+	mapValueRange(r, sd.maps.tempToHumid)
+)
+const locationRanges = humidRanges.flatMap((r) =>
+	mapValueRange(r, sd.maps.humidToLocation)
+)
+
+console.log(
+	"Part 2:",
+	locationRanges.reduce((r, s) => (s.min < r ? s.min : r), Number.MAX_VALUE)
 )
