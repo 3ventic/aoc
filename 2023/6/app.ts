@@ -4,23 +4,11 @@ const rows = inp.split("\n")
 const times = rows[0].split(/\s+/).slice(1).map(Number)
 const distances = rows[1].split(/\s+/).slice(1).map(Number)
 
-function distanceTraveled(time: number, hold: number) {
-	const holdVelocity = 1
-	const timeLeft = time - hold
-	return holdVelocity * hold * timeLeft
-}
-
 function waysToWin(time: number, distanceToBeat: number) {
-	let wins = 0
-	for (let hold = 0; hold < time; hold++) {
-		const distance = distanceTraveled(time, hold)
-		if (distance > distanceToBeat) {
-			wins++
-		} else if (wins > 0) {
-			break
-		}
-	}
-	return wins
+	const lower = (-time + (time ** 2 - 4 * distanceToBeat) ** 0.5) / 2
+	const upper = (-time - (time ** 2 - 4 * distanceToBeat) ** 0.5) / 2
+
+	return Math.abs(Math.ceil(upper) - Math.floor(lower) - 1)
 }
 
 const wins: number[] = []
