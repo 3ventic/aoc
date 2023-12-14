@@ -15,78 +15,91 @@ const input = inp.split("\n").map((line) => {
 	}
 })
 
-function count(s: string, c: string) {
-	return s.split(c).length - 1
+function memoize<Args extends unknown[], Result>(
+	func: (...args: Args) => Result
+): (...args: Args) => Result {
+	const stored = new Map<string, Result>()
+
+	return (...args) => {
+		const k = JSON.stringify(args)
+		if (stored.has(k)) {
+			return stored.get(k)!
+		}
+		const result = func(...args)
+		stored.set(k, result)
+		return result
+	}
 }
 
-function possibleArrangements(sr: SpringRecord): number {
-	const deduper: number[][] = []
-	const totalDefinites = count(sr.springs, "#")
-	const countArrangements = (
-		parts: string[],
-		records: number[],
-		taken: number[] = [],
-		consumed: number = 0,
-		definites: number = 0
-	): number => {
-		if (records.length === 0) {
-			if (definites !== totalDefinites) {
-				return 0
-			}
-			if (deduper.some((d) => d.every((v, i) => v === taken[i]))) {
-				return 0
-			}
-			deduper.push(taken)
-			return 1
-		}
-
-		const record = records[0]
-		const nextRecords = records.slice(1)
-		let total = 0
-		for (let i = 0; i < parts.length; i++) {
-			if (parts[i].length < record) {
-				consumed += parts[i].length
-				continue
-			}
-			if (parts[i].length === record) {
-				total += countArrangements(
-					parts.slice(i + 1),
-					nextRecords,
-					[...taken, consumed],
-					consumed + record,
-					definites + count(parts[i], "#")
-				)
-			} else {
-				for (let j = 0; j <= parts[i].length - record; j++) {
-					if (parts[i][j + record] === "#") {
-						continue
-					}
-
-					total += countArrangements(
-						[parts[i].slice(j + record + 1), ...parts.slice(i + 1)],
-						nextRecords,
-						[...taken, consumed + j],
-						consumed + record + j + Number(j < parts[i].length - record),
-						definites + count(parts[i].slice(j, j + record), "#")
-					)
-					if (parts[i][j] === "#") {
-						break
-					}
-				}
-			}
-			consumed += parts[i].length
-		}
-		return total
+const possibleArrangements = memoize((springs: string, records: number[]) => {
+	if (springs.length === 0) {
+		return Number(records.length === 0)
 	}
 
-	const c = countArrangements(
-		sr.springs.split(".").filter((v) => v.length),
-		sr.records
+	if (records.length === 0) {
+		return Number(!springs.includes("#"))
+	}
+
+	const totalLength = records.reduce((acc, curr) => acc + curr, 0)
+	if (springs.length < totalLength + records.length - 1) {
+		// Line is too short to contain the rest of the records
+		return 0
+	}
+
+	if (springs[0] === ".") {
+		return possibleArrangements(springs.slice(1), records)
+	}
+
+	if (springs[0] === "#") {
+		const [record, ...newRecords] = records
+		if (springs[record] === "#") {
+			return 0
+		}
+		for (let i = 0; i < record; i++) {
+			if (springs[i] === ".") {
+				return 0
+			}
+		}
+
+		return possibleArrangements(springs.slice(record + 1), newRecords)
+	}
+
+	return (
+		possibleArrangements("#" + springs.slice(1), records) +
+		possibleArrangements("." + springs.slice(1), records)
 	)
-	return c
+})
+
+function repeat(s: string, n: number, join: string = "") {
+	let r = ""
+	for (let i = 0; i < n; i++) {
+		r += s + join
+	}
+	return r.slice(0, -1)
+}
+
+function unfold(sr: SpringRecord, n: number = 5) {
+	sr = structuredClone(sr)
+	sr.springs = repeat(sr.springs, n, "?")
+	const originalRecords = [...sr.records]
+	for (let i = 0; i < n - 1; i++) {
+		originalRecords.forEach((r) => sr.records.push(r))
+	}
+	return sr
 }
 
 console.log(
 	"Part 1:",
-	input.reduce((acc, curr) => acc + possibleArrangements(curr), 0)
+	input.reduce(
+		(acc, curr) => acc + possibleArrangements(curr.springs, curr.records),
+		0
+	)
+)
+
+console.log(
+	"Part 2:",
+	input.reduce((acc, curr) => {
+		const unfolded = unfold(curr)
+		return acc + possibleArrangements(unfolded.springs, unfolded.records)
+	}, 0)
 )
