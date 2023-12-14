@@ -129,37 +129,34 @@ function findWire(area: Area) {
 	return wire
 }
 
-function pointsEnclosedByWire(area: Area, wire: Point[]) {
-	function isPointInWire(point: Point) {
-		return wire.some((p) => p.x === point.x && p.y === point.y)
+function pointsEnclosedByWire(area: Area) {
+	const match = {
+		L: (b: boolean) => !b,
+		F: (b: boolean) => b,
 	}
 
 	const points: Point[] = []
 	for (const line of area.points) {
 		let inWire: boolean = false
-		let lastTurn: "F" | "L" | null = null
+		let lastTurn: "F" | "L" | "." = "."
 		for (const point of line) {
-			if (isPointInWire(point)) {
+			if (point.distance > -1) {
 				switch (point.raw) {
 					case "F":
 					case "L":
 						lastTurn = point.raw
 						break
 					case "7":
-						if (lastTurn === "L") {
-							inWire = !inWire
-						}
-						lastTurn = null
+						inWire = match[lastTurn](inWire)
+						lastTurn = "."
 						break
 					case "J":
-						if (lastTurn === "F") {
-							inWire = !inWire
-						}
-						lastTurn = null
+						inWire = !match[lastTurn](inWire)
+						lastTurn = "."
 						break
 					case "|":
 						inWire = !inWire
-						lastTurn = null
+						lastTurn = "."
 						break
 					default:
 					// Nothing on horizontal
@@ -217,7 +214,7 @@ setStartRealRaw(area)
 const wire = findWire(area)
 console.log("Part 1:", wire.length / 2)
 
-const enclosed = pointsEnclosedByWire(area, wire)
+const enclosed = pointsEnclosedByWire(area)
 console.log("Part 2:", enclosed.length)
 
 // drawArea(area, enclosed, wire)
