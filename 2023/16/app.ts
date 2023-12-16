@@ -9,12 +9,10 @@ const V = {
 
 type Velocity = (typeof V)[keyof typeof V]
 
-const opposites = new Map<Velocity, Velocity>([
-	[V.up, V.down],
-	[V.down, V.up],
-	[V.left, V.right],
-	[V.right, V.left],
-])
+type VTuple = [Velocity, Velocity]
+
+const verticals: VTuple = [V.up, V.down]
+const horizontals: VTuple = [V.left, V.right]
 
 const matrix = inp.split("\n").map((row) =>
 	row.split("").map((c) => {
@@ -29,31 +27,38 @@ type Matrix = typeof matrix
 
 function traverseBeam(v0: Velocity, m: Matrix, x0 = 0, y0 = 0) {
 	if (x0 < 0 || y0 < 0 || y0 >= m.length || x0 >= m[y0].length) {
-		return
+		return 0
 	}
+
+	let energized = 0
 
 	let pos = { x: x0, y: y0 }
 	let v = v0
 
 	for (;;) {
 		let cell = m[pos.y][pos.x]
-		const nextVs = nextVelocities(v, cell.value)
-		const nextV = nextVs[0]
+		const nextV = nextVelocities(v, cell.value)
+		const isSplit = Array.isArray(nextV)
 
 		const enteredBefore = cell.enterVelocities.includes(v)
-		const enteredOpposite =
-			nextVs.length === 1 &&
-			cell.enterVelocities.includes(opposites.get(nextV)!)
-		const cycleDetected = enteredBefore || enteredOpposite
-		if (cycleDetected) {
+		if (enteredBefore) {
 			break
 		}
 
+		if (cell.enterVelocities.length === 0) {
+			energized++
+		}
 		cell.enterVelocities.push(v)
-		v = nextV
-
-		if (nextVs.length > 1) {
-			traverseBeam(nextVs[1], m, pos.x + nextVs[1].x, pos.y + nextVs[1].y)
+		if (isSplit) {
+			v = nextV[0]
+			energized += traverseBeam(
+				nextV[1],
+				m,
+				pos.x + nextV[1].x,
+				pos.y + nextV[1].y
+			)
+		} else {
+			v = nextV
 		}
 
 		pos.x += v.x
@@ -68,6 +73,8 @@ function traverseBeam(v0: Velocity, m: Matrix, x0 = 0, y0 = 0) {
 			break
 		}
 	}
+
+	return energized
 }
 
 function nextVelocities(v: Velocity, c: string) {
@@ -75,41 +82,41 @@ function nextVelocities(v: Velocity, c: string) {
 		case "/":
 			switch (v) {
 				case V.up:
-					return [V.right]
+					return V.right
 				case V.down:
-					return [V.left]
+					return V.left
 				case V.left:
-					return [V.down]
+					return V.down
 				case V.right:
-					return [V.up]
+					return V.up
 			}
 			break
 		case "\\":
 			switch (v) {
 				case V.up:
-					return [V.left]
+					return V.left
 				case V.down:
-					return [V.right]
+					return V.right
 				case V.left:
-					return [V.up]
+					return V.up
 				case V.right:
-					return [V.down]
+					return V.down
 			}
 			break
 		case "-":
 			if (v === V.up || v === V.down) {
-				return [V.left, V.right]
+				return horizontals
 			}
 			break
 		case "|":
 			if (v === V.left || v === V.right) {
-				return [V.up, V.down]
+				return verticals
 			}
 			break
 		default:
 			break
 	}
-	return [v]
+	return v
 }
 
 function cleanMatrix(m: Matrix) {
@@ -121,14 +128,10 @@ function cleanMatrix(m: Matrix) {
 	return m
 }
 
-function energizedCells(m: Matrix) {
-	return m.map((row) => row.filter((c) => c.enterVelocities.length > 0)).flat()
-}
-
 {
 	const m = cleanMatrix(matrix)
-	traverseBeam(V.right, m)
-	console.log("Part 1:", energizedCells(m).length)
+	const e = traverseBeam(V.right, m)
+	console.log("Part 1:", e)
 }
 
 {
@@ -136,22 +139,22 @@ function energizedCells(m: Matrix) {
 	// Top and bottom edges
 	for (let x = 0; x < matrix[0].length; x++) {
 		const mt = cleanMatrix(matrix)
-		traverseBeam(V.down, mt, x, 0)
-		results.push(energizedCells(mt).length)
+		const et = traverseBeam(V.down, mt, x, 0)
+		results.push(et)
 
 		const mb = cleanMatrix(matrix)
-		traverseBeam(V.up, mb, x, matrix.length - 1)
-		results.push(energizedCells(mb).length)
+		const eb = traverseBeam(V.up, mb, x, matrix.length - 1)
+		results.push(eb)
 	}
 	// Right and left edge
 	for (let y = 0; y < matrix.length; y++) {
 		const mr = cleanMatrix(matrix)
-		traverseBeam(V.left, mr, matrix[0].length - 1, y)
-		results.push(energizedCells(mr).length)
+		const er = traverseBeam(V.left, mr, matrix[0].length - 1, y)
+		results.push(er)
 
 		const ml = cleanMatrix(matrix)
-		traverseBeam(V.right, ml, 0, y)
-		results.push(energizedCells(ml).length)
+		const el = traverseBeam(V.right, ml, 0, y)
+		results.push(el)
 	}
 	console.log("Part 2:", Math.max(...results))
 }
