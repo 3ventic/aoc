@@ -31,11 +31,13 @@ function traverseBeam(v0: Velocity, m: Matrix, x0 = 0, y0 = 0) {
 	}
 
 	let energized = 0
-
-	let pos = { x: x0, y: y0 }
 	let v = v0
 
-	for (;;) {
+	for (
+		let pos = { x: x0, y: y0 };
+		pos.x >= 0 && pos.y >= 0 && pos.y < m.length && pos.x < m[pos.y].length;
+		pos.y += v.y, pos.x += v.x
+	) {
 		let cell = m[pos.y][pos.x]
 		const nextV = nextVelocities(v, cell.value)
 		const isSplit = Array.isArray(nextV)
@@ -59,18 +61,6 @@ function traverseBeam(v0: Velocity, m: Matrix, x0 = 0, y0 = 0) {
 			)
 		} else {
 			v = nextV
-		}
-
-		pos.x += v.x
-		pos.y += v.y
-
-		if (
-			pos.x < 0 ||
-			pos.y < 0 ||
-			pos.y >= m.length ||
-			pos.x >= m[pos.y].length
-		) {
-			break
 		}
 	}
 
