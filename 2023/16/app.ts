@@ -112,12 +112,21 @@ function nextVelocities(v: Velocity, c: string) {
 	return [v]
 }
 
+function cleanMatrix(m: Matrix) {
+	for (const row of m) {
+		for (const cell of row) {
+			cell.enterVelocities.length = 0
+		}
+	}
+	return m
+}
+
 function energizedCells(m: Matrix) {
 	return m.map((row) => row.filter((c) => c.enterVelocities.length > 0)).flat()
 }
 
 {
-	const m = structuredClone(matrix)
+	const m = cleanMatrix(matrix)
 	traverseBeam(V.right, m)
 	console.log("Part 1:", energizedCells(m).length)
 }
@@ -126,21 +135,21 @@ function energizedCells(m: Matrix) {
 	const results: number[] = []
 	// Top and bottom edges
 	for (let x = 0; x < matrix[0].length; x++) {
-		const mt = structuredClone(matrix)
+		const mt = cleanMatrix(matrix)
 		traverseBeam(V.down, mt, x, 0)
 		results.push(energizedCells(mt).length)
 
-		const mb = structuredClone(matrix)
+		const mb = cleanMatrix(matrix)
 		traverseBeam(V.up, mb, x, matrix.length - 1)
 		results.push(energizedCells(mb).length)
 	}
 	// Right and left edge
 	for (let y = 0; y < matrix.length; y++) {
-		const mr = structuredClone(matrix)
+		const mr = cleanMatrix(matrix)
 		traverseBeam(V.left, mr, matrix[0].length - 1, y)
 		results.push(energizedCells(mr).length)
 
-		const ml = structuredClone(matrix)
+		const ml = cleanMatrix(matrix)
 		traverseBeam(V.right, ml, 0, y)
 		results.push(energizedCells(ml).length)
 	}
